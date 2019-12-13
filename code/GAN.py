@@ -4,6 +4,7 @@ from contextlib import redirect_stdout
 
 import matplotlib.pyplot as plt
 import numpy as np
+from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.layers import (Input, Conv2D, Dense, Activation,
                                      LeakyReLU, Flatten, BatchNormalization,
@@ -12,7 +13,6 @@ from tensorflow.keras.layers import (Input, Conv2D, Dense, Activation,
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import (Adam, RMSprop)
 from tensorflow.keras.utils import plot_model
-from tensorflow.keras.callbacks import TensorBoard
 from tqdm import tqdm
 
 from data_loader import load_dataset
@@ -172,14 +172,14 @@ class GAN:
         Train on batch returns a list of 2 params [loss, acc]
         """
         logs = self.model.train_on_batch(x=np.random.normal(0, 1, (self.batch_size, self.z_dim)),
-                                                        y=np.ones((self.batch_size, 1)))
+                                         y=np.ones((self.batch_size, 1)))
         return [round(logs[0], 4), round(logs[1], 4)]
 
     def train(self, verbose=False, plot=True):
         log_path = os.path.join(self.path, 'logs')
         callback = TensorBoard(log_path)
         callback.set_model(self.model)
-        for epoch in tqdm(range(1, self.epochs + 1), desc="Model Training"):
+        for epoch in tqdm(range(1, self.epochs + 1), desc="GAN Training"):
             discriminator, generator = self.train_discriminator_model(), self.train_generator_model()
             self.discriminator_losses.append(discriminator)
             self.generator_losses.append(generator)
