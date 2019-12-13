@@ -5,6 +5,7 @@ import warnings
 
 import numpy as np
 import tensorflow as tf
+import yaml
 from tensorflow.keras.backend import set_session
 
 
@@ -62,3 +63,9 @@ def write_log(callback, names, logs, batch_no):
         summary_value.tag = name
         callback.writer.add_summary(summary, batch_no)
         callback.writer.flush()
+
+
+def load_config():
+    config_file_path = os.path.join(os.getcwd(), "config.yaml")
+    config_file = open(config_file_path)
+    return yaml.load(config_file)
