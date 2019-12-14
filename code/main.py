@@ -1,12 +1,15 @@
-import logging
-
-from models import GAN, WGAN, WGAN_GP
+from models import GAN, WGAN, WGANGP
 from utils import init_working_space, load_config
 
 if __name__ == "__main__":
     config_params = load_config()
-    method = config_params.get('method')
-    opt = config_params.get('optimizer')
+    method = str(config_params.get('method')).lower()
+    assert method in ['gan', 'wgan', 'wgan-gp'], 'Unknown Method Name, you can choose either gan or wgan or wgan-gp'
+
+    opt = str(config_params.get('optimizer')).lower()
+    assert opt in ['adam_beta', 'adam',
+                   'wgan'], "Unknown Optimizer Name, you can choose either adam_beta or adam or rmsprop"
+
     RUN_FOLDER = init_working_space(method)
 
     model = None
@@ -15,10 +18,7 @@ if __name__ == "__main__":
     elif method == 'wgan':
         model = WGAN(path=RUN_FOLDER, optimizer=opt, visualize=False)
     elif method == 'wgan-gp':
-        model = WGAN_GP(path=RUN_FOLDER, optimizer=opt, visualize=False)
-    else:
-        logging.critical('Unknown Method Name, you can choose either gan, wgan, wgan-gp')
-        exit(0)
+        model = WGANGP(path=RUN_FOLDER, optimizer=opt, visualize=False)
 
     model.save()
     model.plot_visualize_model()
