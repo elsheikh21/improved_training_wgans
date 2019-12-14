@@ -2,14 +2,12 @@ import logging
 import os
 import random
 import warnings
-import zipfile
 
 import numpy as np
 import tensorflow as tf
 import yaml
 from tensorflow.keras.backend import set_session
 from tensorflow.keras.utils import get_file
-from tqdm import tqdm
 
 
 def initialize_logger():
@@ -19,7 +17,7 @@ def initialize_logger():
     np.random.seed(0)
     random.seed(0)
     tf.set_random_seed(0)
-    logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s",
+    logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s",
                         datefmt='%H:%M:%S', level=logging.INFO)
 
 
@@ -74,21 +72,11 @@ def load_config():
     return yaml.load(config_file)
 
 
-def download_unzip_dataset(url, save_to, clean_after=True):
+def download_unzip_dataset(url, save_to=None, clean_after=True):
     """
     Downloads the dataset and removes the zip file after unzipping it
     """
-    file_path = get_file(fname=save_to, origin=url)
-    with zipfile.ZipFile(file_path, 'r') as zip_file:
-        for file in tqdm(iterable=zip_file.namelist(),
-                         total=len(zip_file.namelist()),
-                         desc='Unzipping...'):
-            zip_file.extract(member=file)
+    save_to = os.path.join(os.getcwd(), download_from.split('/')[-1]) if save_to is None else save_to
+    file_path = get_file(fname=save_to, origin=url, extract=True)
     if clean_after:
         os.remove(file_path)
-
-
-if __name__ == '__main__':
-    download_from = 'http://dl.yf.io/lsun/scenes/bedroom_train_lmdb.zip'
-    download_to = os.path.join(os.getcwd(), download_from.split('/')[-1])
-    download_unzip_dataset(download_from, download_to, clean_after=False)

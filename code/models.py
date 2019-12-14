@@ -19,12 +19,13 @@ from tensorflow.keras.optimizers import (Adam, RMSprop)
 from tensorflow.keras.utils import plot_model
 from tqdm import tqdm
 
-from data_loader import load_mnist, load_lsun
+from data_loader import load_mnist, load_celeb_a
 from utils import initialize_logger, configure_tf, write_log
 
 
 class GAN:
-    def __init__(self, path, noise_dim=100, input_dim=(28, 28, 1), optimizer='adam_beta', batch_size=128, visualize=True):
+    def __init__(self, path, noise_dim=100, input_dim=(28, 28, 1),
+                 optimizer='adam_beta', batch_size=128, visualize=True):
         initialize_logger()
         configure_tf()
         self.path = path
@@ -34,7 +35,7 @@ class GAN:
         self.z_dim = noise_dim
 
         self.batch_size = batch_size
-        self.train_x, self.train_y = load_mnist(batch_size=batch_size)
+        self.train_x, self.train_y = load_mnist()
         logging.info('Dataset is loaded')
 
         self.optimizer = optimizer
@@ -373,7 +374,7 @@ class WGANGP(GAN):
         super().__init__(path, noise_dim=100, input_dim=(64, 64, 3),
                          optimizer='adam_beta', batch_size=64, visualize=False)
         self.name = 'WGANGP'
-        self.train_x, self.train_y = load_lsun()
+        self.train_x = load_celeb_a()
         # Based on the ratio for training critic_epochs and generator_epoch
         self.critic_epochs = 5
         self.discriminator_lr, self.generator_lr = 0.0002, 0.0002
@@ -496,10 +497,11 @@ class WGANGP(GAN):
     def train_discriminator_model(self):
         valid, fake = np.ones((self.batch_size, 1), dtype=np.float32), -np.ones((self.batch_size, 1), dtype=np.float32)
         dummy_data = np.zeros((self.batch_size, 1), dtype=np.float32)
-        self.train_x = iter(self.train_x)
+
         true_data = next(self.train_x)[0]
         if true_data.shape[0] != self.batch_size:
             true_data = next(self.train_x)[0]
+
         noise = np.random.normal(0, 1, (self.batch_size, self.z_dim))
         return self.discriminator_model.train_on_batch([true_data, noise], [valid, fake, dummy_data])
 
@@ -523,14 +525,14 @@ class WGANGP(GAN):
             generator = self.train_generator_model()
 
             self.discriminator_losses.append(discriminator)
-            write_log(callback, ['discriminator_loss'], [discriminator], epoch)
+            write_log(callback, ['discriminator_loss'], [discriminator[0]], epoch)
             self.generator_losses.append(generator)
             write_log(callback, ['generator_loss'], [generator], epoch)
 
             if self.epochs % self.sample_every_n_steps == 0 and epoch != 1:
                 self.sample_images(epoch)
             if verbose:
-                logging.info(f"Epoch: {epoch} | D_loss: {discriminator:.4f} | G_loss: {generator:.4f}.")
+                logging.info(f"Epoch: {epoch} | D_loss: {discriminator[0]:.4f} | G_loss: {generator:.4f}.")
         if plot:
             self._plot_training_history()
 

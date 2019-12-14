@@ -20,6 +20,7 @@ if __name__ == "__main__":
     elif method == 'wgan-gp':
         model = WGANGP(path=RUN_FOLDER, optimizer=opt, visualize=False)
 
+    assert model is not None, 'Method name is incorrect'
     model.save()
     model.plot_visualize_model()
     model.train()
