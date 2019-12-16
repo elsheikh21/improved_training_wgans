@@ -39,12 +39,12 @@ class GAN:
         logging.info('Dataset is loaded')
 
         self.optimizer = optimizer
-        self.discriminator_lr = 8e-5
-        self.generator_lr = 4e-5
+        self.discriminator_lr = 1e-5
+        self.generator_lr = self.discriminator_lr / 2
 
         self.weight_initialization = RandomNormal(mean=0., stddev=0.02, seed=0)
-        self.epochs = 5
-        self.sample_every_n_steps = 20
+        self.epochs = 6000
+        self.sample_every_n_steps = 200
         self.discriminator_losses, self.generator_losses = [], []
 
         self._build_discriminator_network()
@@ -193,7 +193,7 @@ class GAN:
                       [discriminator[0], discriminator[1], generator[0]],
                       epoch)
 
-            if self.epochs % self.sample_every_n_steps == 0 and epoch != 1:
+            if epoch % self.sample_every_n_steps == 0 and epoch != 1:
                 self.sample_images(epoch)
 
             if verbose:
@@ -324,7 +324,7 @@ class WGAN(GAN):
             generator = self.train_generator_model()
             self.generator_losses.append(generator)
             write_log(callback, ['generator_loss'], [generator], epoch)
-            if self.epochs % self.sample_every_n_steps == 0 and epoch != 1:
+            if epoch % self.sample_every_n_steps == 0 and epoch != 1:
                 self.sample_images(epoch)
 
             if verbose:
@@ -529,7 +529,7 @@ class WGANGP(GAN):
             self.generator_losses.append(generator)
             write_log(callback, ['generator_loss'], [generator], epoch)
 
-            if self.epochs % self.sample_every_n_steps == 0 and epoch != 1:
+            if epoch % self.sample_every_n_steps == 0 and epoch != 1:
                 self.sample_images(epoch)
             if verbose:
                 logging.info(f"Epoch: {epoch} | D_loss: {discriminator[0]:.4f} | G_loss: {generator:.4f}.")
